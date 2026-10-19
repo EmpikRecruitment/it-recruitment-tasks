@@ -2,7 +2,7 @@
  * TWOJE ZADANIE: zaimplementuj testy.
  *
  * Aplikacja (producer + consumer) jest już gotowa i działająca — Twoim
- * zadaniem jest napisanie testów E2E weryfikujących jej zachowanie,
+ * zadaniem jest napisanie testów E2E weryfikujących jej zachowanie.
  *
  * Masz do dyspozycji gotowe helpery z `src/kafkaHelpers.ts` (opisane
  * w komentarzach tego pliku) — możesz z nich korzystać, ale nie musisz:
