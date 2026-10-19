@@ -27,9 +27,6 @@ docker compose logs -f consumer
 docker compose --profile test run --rm tests
 ```
 
-Na start wszystkie testy w `tests/__tests__/kafkaFlow.test.ts` są oznaczone
-`it.skip(...)` — po zaimplementowaniu każdego testu zamień `it.skip` na `it`.
-
 ### Uruchomienie testów lokalnie (bez Dockera dla samych testów)
 
 Przydatne przy pisaniu/debugowaniu — szybszy cykl niż przebudowa obrazu Dockera:
