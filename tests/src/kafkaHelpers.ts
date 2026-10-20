@@ -140,15 +140,18 @@ export async function waitForMessage(
   return new Promise((resolve, reject) => {
     let settled = false;
 
-    const finish = async (result: unknown) => {
+    const finish = (result: unknown) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      try {
-        await consumer.disconnect();
-      } finally {
-        resolve(result);
-      }
+      setTimeout(async () => {
+        try {
+          await consumer.stop();
+          await consumer.disconnect();
+        } finally {
+          resolve(result);
+        }
+      }, 0);
     };
 
     const timer = setTimeout(() => {
@@ -161,7 +164,7 @@ export async function waitForMessage(
           if (settled) return;
           const parsed = tryParse(message.value);
           if (parsed !== null && matchFn(parsed)) {
-            await finish(parsed);
+            finish(parsed);
           }
         },
       })
@@ -190,15 +193,18 @@ export async function collectMessages(
   return new Promise((resolve, reject) => {
     let settled = false;
 
-    const finish = async () => {
+    const finish = () => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      try {
-        await consumer.disconnect();
-      } finally {
-        resolve(found);
-      }
+      setTimeout(async () => {
+        try {
+          await consumer.stop();
+          await consumer.disconnect();
+        } finally {
+          resolve(found);
+        }
+      }, 0);
     };
 
     const timer = setTimeout(() => {
@@ -213,7 +219,7 @@ export async function collectMessages(
           if (parsed !== null && matchFn(parsed)) {
             found.push(parsed);
             if (found.length >= expectedCount) {
-              await finish();
+              finish();
             }
           }
         },

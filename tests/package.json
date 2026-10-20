@@ -4,7 +4,8 @@
   "private": true,
   "description": "Testy E2E przepływu wiadomości Kafka (producent -> orders -> konsument -> orders-processed/orders-dlq)",
   "scripts": {
-    "test": "jest --runInBand --verbose"
+    "test": "jest --runInBand --verbose",
+    "test-detect": "jest --runInBand --verbose --detectOpenHandles"
   },
   "dependencies": {
     "kafkajs": "^2.2.4"
