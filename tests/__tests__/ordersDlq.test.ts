@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import {
   ORDERS_DLQ_TOPIC,
   ORDERS_TOPIC,
@@ -13,12 +14,13 @@ describe("obsługa błędów w DLQ:", () => {
   test("niepoprawny JSON trafia do kolejki DLQ", async () => {
     const producer = await getProducer();
     const brokenJSON = '{"broken":';
+    const requestId = randomUUID();
     const receivedPromise = waitForMessage(
       ORDERS_DLQ_TOPIC,
-      (msg) => typeof msg.error === "string" && msg.error.includes("Niepoprawny JSON")
+      (msg, metadata) => metadata?.key === requestId && !!msg && typeof msg === "object"
     );
 
-    await sendRaw(producer, brokenJSON, "bad-json", ORDERS_TOPIC);
+    await sendRaw(producer, brokenJSON, requestId, ORDERS_TOPIC);
 
     const receivedMessage = await receivedPromise;
 
@@ -31,16 +33,17 @@ describe("obsługa błędów w DLQ:", () => {
 
   test("sprawdza zwrotkę przy brakujcych polach", async () => {
     const producer = await getProducer();
+    const requestId = randomUUID();
     const invalidOrder: Partial<Order> = {
       orderId: "to nie tak powinno wygldać",
       customer: "niedobry customer",
     };
     const receivedPromise = waitForMessage(
       ORDERS_DLQ_TOPIC,
-      (msg) => typeof msg.error === "string" && msg.error.includes("Brakujące pola")
+      (msg, metadata) => metadata?.key === requestId && !!msg && typeof msg === "object"
     );
 
-    await sendOrder(producer, invalidOrder);
+    await sendOrder(producer, invalidOrder, "orders", requestId);
 
     const receivedMessage = await receivedPromise;
 

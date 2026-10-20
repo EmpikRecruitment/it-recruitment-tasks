@@ -9,6 +9,7 @@
  * jeśli uważasz, że lepiej napisać coś inaczej, zrób to i uzasadnij w README.
  *
  */
+import { randomUUID } from "crypto";
 import {
   ORDERS_PROCESSED_TOPIC,
   Order,
@@ -25,9 +26,13 @@ describe("Przepływ przetwarzania zamówień przez Kafkę", () => {
   test("Zamówienie ze statusem NEW jest przetworzone i wysłane do topicu orders-processed", async () => {
     const producer = await producerPromise;
     const order: Order = makeTestOrder({ status: "NEW" });
-    const receivedPromise = waitForMessage(ORDERS_PROCESSED_TOPIC, (msg) => msg.orderId === order.orderId);
+    const requestId = randomUUID();
+    const receivedPromise = waitForMessage(
+      ORDERS_PROCESSED_TOPIC,
+      (msg, metadata) => metadata?.key === requestId && msg.orderId === order.orderId
+    );
 
-    await sendOrder(producer, order);
+    await sendOrder(producer, order, "orders", requestId);
 
     const receivedMessage = await receivedPromise;
 

@@ -48,8 +48,13 @@ export interface Order {
   status: string;
 }
 
+export interface MessageMetadata {
+  key: string | null;
+  topic: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type MatchFn = (value: any) => boolean;
+export type MatchFn = (value: any, metadata?: MessageMetadata) => boolean;
 
 let sharedProducer: Producer | null = null;
 
@@ -85,12 +90,15 @@ export function makeTestOrder(overrides: Partial<Order> = {}): Order {
 export async function sendOrder(
   producer: Producer,
   order: Partial<Order>,
-  topic: string = ORDERS_TOPIC
-): Promise<void> {
+  topic: string = ORDERS_TOPIC,
+  key: string = randomUUID()
+): Promise<string> {
   await producer.send({
     topic,
-    messages: [{ key: order.orderId, value: JSON.stringify(order) }],
+    messages: [{ key, value: JSON.stringify(order) }],
   });
+
+  return key;
 }
 
 /**
@@ -100,13 +108,15 @@ export async function sendOrder(
 export async function sendRaw(
   producer: Producer,
   rawValue: string | Buffer,
-  key?: string,
+  key: string = randomUUID(),
   topic: string = ORDERS_TOPIC
-): Promise<void> {
+): Promise<string> {
   await producer.send({
     topic,
     messages: [{ key, value: rawValue }],
   });
+
+  return key;
 }
 
 function newConsumer(): Consumer {
@@ -160,10 +170,11 @@ export async function waitForMessage(
 
     consumer
       .run({
-        eachMessage: async ({ message }: EachMessagePayload) => {
+        eachMessage: async ({ message, topic }: EachMessagePayload) => {
           if (settled) return;
           const parsed = tryParse(message.value);
-          if (parsed !== null && matchFn(parsed)) {
+          const key = message.key ? message.key.toString("utf-8") : null;
+          if (parsed !== null && matchFn(parsed, { key, topic })) {
             finish(parsed);
           }
         },
@@ -213,10 +224,11 @@ export async function collectMessages(
 
     consumer
       .run({
-        eachMessage: async ({ message }: EachMessagePayload) => {
+        eachMessage: async ({ message, topic }: EachMessagePayload) => {
           if (settled) return;
           const parsed = tryParse(message.value);
-          if (parsed !== null && matchFn(parsed)) {
+          const key = message.key ? message.key.toString("utf-8") : null;
+          if (parsed !== null && matchFn(parsed, { key, topic })) {
             found.push(parsed);
             if (found.length >= expectedCount) {
               finish();
