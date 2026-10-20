@@ -9,40 +9,33 @@
  * jeśli uważasz, że lepiej napisać coś inaczej, zrób to i uzasadnij w README.
  *
  */
-import { Producer } from "kafkajs";
 import {
-  ORDERS_DLQ_TOPIC,
   ORDERS_PROCESSED_TOPIC,
-  ORDERS_TOPIC,
   Order,
-  collectMessages,
   disconnectProducer,
   getProducer,
   makeTestOrder,
   sendOrder,
-  sendRaw,
   waitForMessage,
 } from "../src/kafkaHelpers";
 
 describe("Przepływ przetwarzania zamówień przez Kafkę", () => {
-  let producer: Producer;
+  const producerPromise = getProducer();
 
-  beforeAll(async () => {
-    producer = await getProducer();
-    console.log("Producer connected XXX");
-  });
-
-  test("Zamówienie ze statusem NEW jest przetworzone i wysłane do ORDERS_PROCESSED_TOPIC", async () => {
+  test("Zamówienie ze statusem NEW jest przetworzone i wysłane do topicu orders-processed", async () => {
+    const producer = await producerPromise;
     const order: Order = makeTestOrder({ status: "NEW" });
     const receivedPromise = waitForMessage(ORDERS_PROCESSED_TOPIC, (msg) => msg.orderId === order.orderId);
 
     await sendOrder(producer, order);
 
-    const received = await receivedPromise;
+    const receivedMessage = await receivedPromise;
 
-    expect(received).toEqual(
+    expect(receivedMessage).toEqual(
       expect.objectContaining({
         orderId: order.orderId,
+        customer: order.customer,
+        amount: order.amount,
         status: "PROCESSED",
       })
     );
@@ -51,5 +44,4 @@ describe("Przepływ przetwarzania zamówień przez Kafkę", () => {
   afterAll(async () => {
     await disconnectProducer();
   });
-
 });
