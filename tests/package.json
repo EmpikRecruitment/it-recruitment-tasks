@@ -5,6 +5,8 @@
   "description": "Testy E2E przepływu wiadomości Kafka (producent -> orders -> konsument -> orders-processed/orders-dlq)",
   "scripts": {
     "test": "jest --runInBand --verbose",
+    "test:smoke": "jest --runInBand --verbose __tests__/ordersProcessed.test.ts",
+    "test:dlq": "jest --runInBand --verbose __tests__/ordersDlq.test.ts",
     "test:ci": "mkdir -p test-results && jest --runInBand --verbose --json --outputFile=./test-results/jest-results.json",
     "test-detect": "jest --runInBand --verbose --detectOpenHandles"
   },
