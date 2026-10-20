@@ -81,6 +81,9 @@ services:
   tests:
     build: ./tests
     container_name: kafka-tests
+    volumes:
+      - ./tests:/app
+      - /app/node_modules
     depends_on:
       kafka-init:
         condition: service_completed_successfully

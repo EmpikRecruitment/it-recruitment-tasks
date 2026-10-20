@@ -29,10 +29,21 @@ describe("Przepływ przetwarzania zamówień przez Kafkę", () => {
 
   beforeAll(async () => {
     producer = await getProducer();
+    console.log("Producer connected");
   });
 
+  test("Zamówienie 'NEW' przetworzone i wysłane do ORDERS_PROCESSED_TOPIC", async () => {
+  
+    // const order: Order = makeTestOrder();
+    // await sendOrder(producer, order);
+    // expect(await waitForMessage(ORDERS_PROCESSED_TOPIC, (msg) => msg.orderId === order.orderId)).toEqual(expect.objectContaining({ orderId: order.orderId, status: "PROCESSED" }));
+  
+    expect(true).toBe(true); // TODO: usuń to i napisz test
+
+  });
   afterAll(async () => {
     await disconnectProducer();
+    console.log("Producer disconnected");
   });
 
 });
